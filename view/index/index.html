@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>用户注册和登录</title>
+    <script src="/base/jquery-1.12.4.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/layer/3.5.1/layer.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            min-width: 400px;
+            min-height: 300px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background-color: #1890ff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #40a9ff;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .toggle-form a {
+            color: #1890ff;
+            text-decoration: none;
+        }
+
+        .error-message {
+            color: #ff4d4f;
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="loginForm">
+        <h2>用户登录</h2>
+        <div class="form-group">
+            <label for="loginUsername">用户名</label>
+            <input type="text" id="loginUsername" name="username" required>
+            <div class="error-message" id="loginUsernameError"></div>
+        </div>
+        <div class="form-group">
+            <label for="loginPassword">密码</label>
+            <input type="password" id="loginPassword" name="password" required>
+            <div class="error-message" id="loginPasswordError"></div>
+        </div>
+        <button class="btn" onclick="login()">登录</button>
+        <div class="toggle-form">
+            <a href="javascript:void(0)" onclick="toggleForm('register')">还没有账号？立即注册</a>
+        </div>
+    </div>
+
+    <div class="container" id="registerForm" style="display: none;">
+        <h2>用户注册</h2>
+        <div class="form-group">
+            <label for="registerUsername">用户名</label>
+            <input type="text" id="registerUsername" name="username" required>
+            <div class="error-message" id="registerUsernameError"></div>
+        </div>
+        <div class="form-group">
+            <label for="registerPassword">密码</label>
+            <input type="password" id="registerPassword" name="password" required>
+            <div class="error-message" id="registerPasswordError"></div>
+        </div>
+        <div class="form-group">
+            <label for="confirmPassword">确认密码</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+            <div class="error-message" id="confirmPasswordError"></div>
+        </div>
+        <button class="btn" onclick="register()">注册</button>
+        <div class="toggle-form">
+            <a href="javascript:void(0)" onclick="toggleForm('login')">已有账号？立即登录</a>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm(type) {
+            if (type === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            }
+        }
+
+        // 登录
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            // 重置错误信息
+            document.getElementById('loginUsernameError').style.display = 'none';
+            document.getElementById('loginPasswordError').style.display = 'none';
+
+            // 简单的前端验证
+            if (!username) {
+                showError('loginUsernameError', '请输入用户名');
+                return;
+            }
+            if (!password) {
+                showError('loginPasswordError', '请输入密码');
+                return;
+            }
+
+            // 发送登录请求
+            var url = ROOT_URL + '/?c=index_index&a=login';
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: "json",
+                data: { username: username, password: password },
+                success: function (data) {
+                    if (data.success) {
+                        layer.msg('登录成功！', {
+                            icon: 1,
+                            time: 1500
+                        }, function () {
+                            window.location.href = ROOT_URL + '/?c=index_index&a=home';
+                        });
+                    } else {
+                        showError('loginPasswordError', data.message || '登录失败，请检查用户名和密码');
+                    }
+                },
+                error: function () {
+                    showError('loginPasswordError', '登录请求失败，请稍后重试');
+                }
+            });
+        }
+
+        // 注册
+        function register() {
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // 重置错误信息
+            document.getElementById('registerUsernameError').style.display = 'none';
+            document.getElementById('registerPasswordError').style.display = 'none';
+            document.getElementById('confirmPasswordError').style.display = 'none';
+
+            // 前端验证
+            if (!username) {
+                showError('registerUsernameError', '请输入用户名');
+                return;
+            }
+            if (!password) {
+                showError('registerPasswordError', '请输入密码');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showError('confirmPasswordError', '两次输入的密码不一致');
+                return;
+            }
+
+            // 发送注册请求
+            var url = ROOT_URL + '/?c=index_index&a=register';
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: "json",
+                data: { username: username, password: password },
+                success: function (data) {
+                    if (data.success) {
+                        layer.msg('注册成功！', {
+                            icon: 1,
+                            time: 1500
+                        }, function () {
+                            toggleForm('login');
+                        });
+                    } else {
+                        showError('registerUsernameError', data.message || '注册失败，请稍后重试');
+                    }
+                },
+                error: function () {
+                    showError('registerUsernameError', '注册请求失败，请稍后重试');
+                }
+            });
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
